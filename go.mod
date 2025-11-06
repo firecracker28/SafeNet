@@ -1,4 +1,4 @@
-module SafeNet
+module github.com/firecracker28/SafeNet
 
 go 1.25.4
 
