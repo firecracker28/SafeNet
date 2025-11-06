@@ -14,6 +14,7 @@ import (
 Takes in a packet and stores any important
 data from various packet layers. Currently just
 outputs to screen.
+Args: gopacket.Packet packet
 TODO: Transition to database storage
 */
 func displayPacket(packet gopacket.Packet) {
@@ -53,6 +54,10 @@ func displayPacket(packet gopacket.Packet) {
 	}
 }
 
+/*
+Starts live packet capture from predetermined port for a predetermined time.
+TODO: Add CLI so port and capture time can be configured
+*/
 func capturePacket() {
 	netinterface := "eth0"
 	maxBytes := 1600
