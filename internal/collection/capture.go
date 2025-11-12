@@ -20,20 +20,21 @@ func CapturePacket() {
 	timeout := 30 * time.Second
 	db := storage.OpenDb()
 	fmt.Println("Collecting packets from your network.....")
-	if handle, error := pcap.OpenLive(netinterface, int32(maxBytes), true, timeout); error != nil {
-		panic(error)
-	} else if err := handle.SetBPFFilter("tcp and port 80"); err != nil {
-		log.Printf("Error setting filter %v", err)
-	} else {
-		packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-		for packet := range packetSource.Packets() {
-			temp := ParsePacket(packet)
-			err := storage.AddPackets(db, temp)
-			if err != nil {
-				log.Fatal(err)
-				panic(err)
-			}
-		}
+	handle, err := pcap.OpenLive(netinterface, int32(maxBytes), true, timeout)
+	if err != nil {
+		panic(err)
 	}
-
+	defer handle.Close()
+	otherErr := handle.SetBPFFilter("ip")
+	if otherErr != nil {
+		log.Printf("Error setting filter %v", otherErr)
+		panic(otherErr)
+	}
+	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+	for packet := range packetSource.Packets() {
+		fmt.Print(packet)
+	}
+	storage.AddPackets(db, *packetSource)
+	db.Close()
+	fmt.Print("Finished collecting packets ... Analyzing")
 }

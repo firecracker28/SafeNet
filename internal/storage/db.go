@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/firecracker28/SafeNet/internal/objects"
+	"github.com/firecracker28/SafeNet/internal/decoding"
+	"github.com/google/gopacket"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -17,13 +18,13 @@ func addTables(db *sql.DB) error {
 	queryPackets := `
 	CREATE TABLE IF NOT EXISTS packets(
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	timestamp STRING NOT NULL,
-	length INTEGER NOT NULL,
-	protocols STRING NOT NULL,
+	timestamp STRING,
+	length INTEGER,
+	protocols STRING,
 	src_Port STRING,
 	dest_Port STRING,
-	src_IP STRING NOT NULL,
-	dest_IP STRING NOT NULL
+	src_IP STRING,
+	dest_IP STRING
 	)`
 
 	//TODO: add table for alerts
@@ -36,35 +37,47 @@ func addTables(db *sql.DB) error {
 
 /* Opens and test connection to SQLite database */
 func OpenDb() *sql.DB {
-	db, err := sql.Open("sqlite3", "./internal/storage/packets.db")
+	db, err := sql.Open("sqlite3", "C:\\Users\\logan\\OneDrive\\Documents\\SafeNet\\internal\\storage\\packets.db")
 	if err != nil {
-		log.Fatal(err)
-		panic(err)
+		log.Print(err)
 	}
-	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err)
-		panic(err)
+		log.Print(err)
 	}
 	fmt.Println("Connection to SQL database successful")
 	err = addTables(db)
 	if err != nil {
-		log.Fatal(err)
-		panic(err)
+		log.Print(err)
 	}
 	return db
 }
 
-func AddPackets(db *sql.DB, packet objects.Packet) error {
-	addQuery, err := db.Prepare("INSERT INTO packets (timestamp,length,protocols,src_Port,dest_Port,src_IP,dest_IP)VALUES (?, ?, ?, ?, ?, ?, ?) ")
+func AddPackets(db *sql.DB, packets gopacket.PacketSource) error {
+	tx, err := db.Begin()
 	if err != nil {
-		log.Fatal(err)
-		panic(err)
+		return fmt.Errorf("beginning error: %w", err)
+	}
+	addQuery, err := tx.Prepare("INSERT INTO packets (timestamp,length,protocols,src_Port,dest_Port,src_IP,dest_IP)VALUES (?, ?, ?, ?, ?, ?, ?) ")
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("preparing error: %w", err)
 	}
 	defer addQuery.Close()
-	fmt.Println("Adding packets to database....")
-	_, err = addQuery.Exec(packet.Timestamp, packet.Length, packet.Protocols, packet.SrcPort, packet.DestPort)
+
+	for temp := range packets.Packets() {
+		fmt.Println("Adding packets to database....")
+		packet := decoding.ParsePacket(temp)
+		_, err = addQuery.Exec(packet.Timestamp, packet.Length, packet.Protocols, packet.SrcPort, packet.DestPort, packet.SrcIP, packet.DestIP)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("adding error: %w", err)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("commiting error: %w", err)
+	}
 	return err
 }

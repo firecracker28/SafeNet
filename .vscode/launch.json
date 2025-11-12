@@ -9,7 +9,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${./internal/cmd/SafeNet/main.go}"
+            "program": "C:/Users/logan/OneDrive/Documents/SafeNet/internal/cmd/SafeNet/main.go"
         },
     ]
 }
