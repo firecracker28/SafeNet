@@ -18,26 +18,29 @@ func addTables(db *sql.DB) error {
 	queryPackets := `
 	CREATE TABLE IF NOT EXISTS packets(
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	timestamp STRING,
+	timestamp TEXT,
 	length INTEGER,
-	protocols STRING,
-	src_Port STRING,
-	dest_Port STRING,
-	src_IP STRING,
-	dest_IP STRING
+	protocols TEXT,
+	src_Port TEXT,
+	dest_Port TEXT,
+	src_IP TEXT,
+	dest_IP TEXT
 	)`
 
 	//TODO: add table for alerts
 	fmt.Println("Adding table to database....")
 	_, err := db.Exec(queryPackets)
+	if err != nil {
+		return err
+	}
 	fmt.Println("Successfully added table to database...")
-	return err
+	return nil
 
 }
 
 /* Opens and test connection to SQLite database */
 func OpenDb() *sql.DB {
-	db, err := sql.Open("sqlite3", "C:\\Users\\logan\\OneDrive\\Documents\\SafeNet\\internal\\storage\\packets.db")
+	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		log.Print(err)
 	}
@@ -46,6 +49,7 @@ func OpenDb() *sql.DB {
 	if err != nil {
 		log.Print(err)
 	}
+	db.Exec("DROP TABLE IF EXISTS packets")
 	fmt.Println("Connection to SQL database successful")
 	err = addTables(db)
 	if err != nil {
@@ -54,7 +58,7 @@ func OpenDb() *sql.DB {
 	return db
 }
 
-func AddPackets(db *sql.DB, packets gopacket.PacketSource) error {
+func AddPackets(db *sql.DB, packets []gopacket.Packet) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("beginning error: %w", err)
@@ -66,7 +70,7 @@ func AddPackets(db *sql.DB, packets gopacket.PacketSource) error {
 	}
 	defer addQuery.Close()
 
-	for temp := range packets.Packets() {
+	for _, temp := range packets {
 		fmt.Println("Adding packets to database....")
 		packet := decoding.ParsePacket(temp)
 		_, err = addQuery.Exec(packet.Timestamp, packet.Length, packet.Protocols, packet.SrcPort, packet.DestPort, packet.SrcIP, packet.DestIP)
@@ -80,4 +84,14 @@ func AddPackets(db *sql.DB, packets gopacket.PacketSource) error {
 		return fmt.Errorf("commiting error: %w", err)
 	}
 	return err
+}
+
+func QueryPackets(db *sql.DB) error {
+	query := "SELECT * FROM packets WHERE id = ?"
+	row, err := db.Query(query, 1)
+	if err != nil {
+		return fmt.Errorf("querying error: %w", err)
+	}
+	fmt.Println("First packet: ", row)
+	return nil
 }

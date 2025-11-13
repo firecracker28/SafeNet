@@ -18,6 +18,9 @@ func ParsePacket(packet gopacket.Packet) objects.Packet {
 	protocols := ""
 	var srcPort, destPort string
 	var srcIP, destIP string
+	if packet.Metadata() == nil {
+		return objects.MakePacket("", 0, "", "", "", "", "")
+	}
 	timestamp := packet.Metadata().Timestamp.String()
 	fmt.Printf("TimeStamp: %v", timestamp)
 	packetLength := packet.Metadata().CaptureLength
@@ -28,14 +31,13 @@ func ParsePacket(packet gopacket.Packet) objects.Packet {
 		protocols += applicationProtocol + " "
 	}
 	tcpLayer := packet.Layer(layers.LayerTypeTCP)
+	udpLayer := packet.Layer(layers.LayerTypeUDP)
 	if tcpLayer != nil {
 		protocols += "TCP "
 		tcp, _ := tcpLayer.(*layers.TCP)
 		srcPort = tcp.SrcPort.String()
 		destPort = tcp.DstPort.String()
-	}
-	udpLayer := packet.Layer(layers.LayerTypeUDP)
-	if udpLayer != nil {
+	} else if udpLayer != nil {
 		protocols += "UDP "
 		udp, _ := udpLayer.(*layers.UDP)
 		srcPort = udp.SrcPort.String()

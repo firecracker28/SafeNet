@@ -11,6 +11,7 @@ type Packet struct {
 }
 
 func MakePacket(timestamp string, length int, protocols string, srcPort string, destPort string, srcIP string, destIP string) Packet {
+
 	return Packet{
 		Timestamp: timestamp,
 		Length:    length,
