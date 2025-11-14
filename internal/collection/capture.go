@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/firecracker28/SafeNet/internal/storage"
 	"github.com/google/gopacket"
@@ -14,12 +15,16 @@ import (
 
 /*
 Starts live packet capture from predetermined port for a predetermined time.
-TODO: Add CLI so port and capture time can be configured
 */
-func CapturePacket() {
-	netinterface := "\\Device\\NPF_{E8322E87-2762-4710-A744-5D2A9D7B2BA4}"
-	maxBytes := 1600
-	timeout := pcap.BlockForever
+func CapturePacket(device string, maximumBytes int, timeoutLength int) {
+	netinterface := device
+	maxBytes := maximumBytes
+	timeout := 0 * time.Second
+	if timeoutLength == -1 {
+		timeout = pcap.BlockForever
+	} else {
+		timeout = time.Duration(timeoutLength)
+	}
 	db := storage.OpenDb()
 	defer db.Close()
 	fmt.Println("Collecting packets from your network.....")
@@ -33,6 +38,7 @@ func CapturePacket() {
 		log.Printf("Error setting filter %v", otherErr)
 		panic(otherErr)
 	}
+	//Stops packet capture when user presses crtl + c
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	go func() {
