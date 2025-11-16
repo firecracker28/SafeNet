@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/firecracker28/SafeNet/internal/analysis"
 	"github.com/firecracker28/SafeNet/internal/storage"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
@@ -53,13 +54,14 @@ func CapturePacket(device string, maximumBytes int, timeoutLength int) {
 		packets = append(packets, packet)
 	}
 	storage.AddPackets(db, packets)
-	row := db.QueryRow("SELECT * FROM packets LIMIT 1")
-	var ts, proto, srcPort, dstPort, srcIP, dstIP string
+	//row := db.QueryRow("SELECT * FROM packets LIMIT 1")
+	/*var ts, proto, srcPort, dstPort, srcIP, dstIP string
 	var length, id int
 	err = row.Scan(&id, &ts, &length, &proto, &srcPort, &dstPort, &srcIP, &dstIP)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Row: %d %s %d %s %s %s %s %s\n", id, ts, length, proto, srcPort, dstPort, srcIP, dstIP)
-	fmt.Println("Finished collecting packets ... Analyzing")
+	fmt.Println("Finished collecting packets ... Analyzing")*/
+	analysis.TopIPs(db)
 }
