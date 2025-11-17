@@ -23,4 +23,5 @@ func main() {
 	collection.CapturePackets(*device, *maxBytes, *timeout, db)
 	analysis.Top_Source_IPs(db)
 	analysis.Top_Dest_IPs(db)
+	analysis.SuspiciousIPs(db)
 }

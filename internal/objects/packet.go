@@ -10,6 +10,10 @@ type Packet struct {
 	DestIP    string `db:"dest_IP"`
 }
 
+/*
+Constructor for Packet object. Takes in all fields collected in ParsePackets()
+Returns a Packet object for entry into database
+*/
 func MakePacket(timestamp string, length int, protocols string, srcPort string, destPort string, srcIP string, destIP string) Packet {
 
 	return Packet{

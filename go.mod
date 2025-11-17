@@ -6,5 +6,6 @@ require github.com/google/gopacket v1.1.19
 
 require (
 	github.com/mattn/go-sqlite3 v1.14.32 // indirect
+	golang.org/x/exp v0.0.0-20251113190631-e25ba8c21ef6 // indirect
 	golang.org/x/sys v0.0.0-20190412213103-97732733099d // indirect
 )
