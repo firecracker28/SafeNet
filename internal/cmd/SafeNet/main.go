@@ -6,7 +6,9 @@ import (
 
 	//"net"
 	//"github.com/google/gopacket/pcap"
+	"github.com/firecracker28/SafeNet/internal/analysis"
 	"github.com/firecracker28/SafeNet/internal/collection"
+	"github.com/firecracker28/SafeNet/internal/storage"
 )
 
 func main() {
@@ -14,7 +16,11 @@ func main() {
 	maxBytes := flag.Int("maxBytes", 1600, " set maxBytes")
 	timeout := flag.Int("timeout", -1, " set timeout")
 	flag.Parse()
-	intro := "Welcome to SafeNet: Your Network's Security Blanket. REMINDER: Inorder to stop packet capture press ctrl c"
+	intro := "Welcome to SafeNet: Your Network's Security Blanket. REMINDER: Inorder to stop packet capture use CTRL+C"
 	fmt.Println(intro)
-	collection.CapturePacket(*device, *maxBytes, *timeout)
+	db := storage.OpenDb()
+	defer db.Close()
+	collection.CapturePackets(*device, *maxBytes, *timeout, db)
+	analysis.Top_Source_IPs(db)
+	analysis.Top_Dest_IPs(db)
 }

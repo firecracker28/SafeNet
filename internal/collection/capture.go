@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -8,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/firecracker28/SafeNet/internal/analysis"
 	"github.com/firecracker28/SafeNet/internal/storage"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
@@ -17,7 +17,7 @@ import (
 /*
 Starts live packet capture from predetermined port for a predetermined time.
 */
-func CapturePacket(device string, maximumBytes int, timeoutLength int) {
+func CapturePackets(device string, maximumBytes int, timeoutLength int, db *sql.DB) {
 	netinterface := device
 	maxBytes := maximumBytes
 	timeout := 0 * time.Second
@@ -26,8 +26,6 @@ func CapturePacket(device string, maximumBytes int, timeoutLength int) {
 	} else {
 		timeout = time.Duration(timeoutLength)
 	}
-	db := storage.OpenDb()
-	defer db.Close()
 	fmt.Println("Collecting packets from your network.....")
 	handle, err := pcap.OpenLive(netinterface, int32(maxBytes), true, timeout)
 	if err != nil {
@@ -50,18 +48,7 @@ func CapturePacket(device string, maximumBytes int, timeoutLength int) {
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	var packets []gopacket.Packet
 	for packet := range packetSource.Packets() {
-		fmt.Print(packet)
 		packets = append(packets, packet)
 	}
 	storage.AddPackets(db, packets)
-	//row := db.QueryRow("SELECT * FROM packets LIMIT 1")
-	/*var ts, proto, srcPort, dstPort, srcIP, dstIP string
-	var length, id int
-	err = row.Scan(&id, &ts, &length, &proto, &srcPort, &dstPort, &srcIP, &dstIP)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Row: %d %s %d %s %s %s %s %s\n", id, ts, length, proto, srcPort, dstPort, srcIP, dstIP)
-	fmt.Println("Finished collecting packets ... Analyzing")*/
-	analysis.TopIPs(db)
 }
