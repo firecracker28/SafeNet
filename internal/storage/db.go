@@ -58,6 +58,11 @@ func OpenDb() *sql.DB {
 	return db
 }
 
+/*
+Adds packets to database
+Arguments: SQLite3 database, array of gopacket.Packet's
+Returns any errors that occured in the process
+*/
 func AddPackets(db *sql.DB, packets []gopacket.Packet) error {
 	tx, err := db.Begin()
 	if err != nil {
@@ -84,14 +89,4 @@ func AddPackets(db *sql.DB, packets []gopacket.Packet) error {
 		return fmt.Errorf("commiting error: %w", err)
 	}
 	return err
-}
-
-func QueryPackets(db *sql.DB) error {
-	query := "SELECT * FROM packets WHERE id = ?"
-	row, err := db.Query(query, 1)
-	if err != nil {
-		return fmt.Errorf("querying error: %w", err)
-	}
-	fmt.Println("First packet: ", row)
-	return nil
 }

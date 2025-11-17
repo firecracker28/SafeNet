@@ -27,6 +27,7 @@ func CapturePackets(device string, maximumBytes int, timeoutLength int, db *sql.
 		timeout = time.Duration(timeoutLength)
 	}
 	fmt.Println("Collecting packets from your network.....")
+	fmt.Println("PRESS CRTL + C TO STOP PACKET CAPTURE")
 	handle, err := pcap.OpenLive(netinterface, int32(maxBytes), true, timeout)
 	if err != nil {
 		panic(err)
@@ -37,9 +38,9 @@ func CapturePackets(device string, maximumBytes int, timeoutLength int, db *sql.
 		log.Printf("Error setting filter %v", otherErr)
 		panic(otherErr)
 	}
-	//Stops packet capture when user presses crtl + c
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+	// Go routine that stops packet capture when user presses crtl + c
 	go func() {
 		<-stop
 		fmt.Println("Interrupt received, stopping capture...")

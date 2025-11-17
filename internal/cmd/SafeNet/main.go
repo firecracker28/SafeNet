@@ -16,7 +16,7 @@ func main() {
 	maxBytes := flag.Int("maxBytes", 1600, " set maxBytes")
 	timeout := flag.Int("timeout", -1, " set timeout")
 	flag.Parse()
-	intro := "Welcome to SafeNet: Your Network's Security Blanket. REMINDER: Inorder to stop packet capture use CTRL+C"
+	intro := "Welcome to SafeNet: Your Network's Security Blanket."
 	fmt.Println(intro)
 	db := storage.OpenDb()
 	defer db.Close()

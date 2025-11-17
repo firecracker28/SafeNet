@@ -7,6 +7,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+/*
+Selects Top 5 source IP's and displays their frequency
+Arguments: SQLite3 datbase
+*/
 func Top_Source_IPs(db *sql.DB) {
 	query := `SELECT src_IP, COUNT(*) AS frequency
 	FROM packets
@@ -30,6 +34,10 @@ func Top_Source_IPs(db *sql.DB) {
 	}
 }
 
+/*
+Selects Top 5 destination IP addresses and displays their frequency
+Arguments: SQLite3 database
+*/
 func Top_Dest_IPs(db *sql.DB) {
 	query := `SELECT dest_IP, COUNT(*) as frequency
 	FROM packets
