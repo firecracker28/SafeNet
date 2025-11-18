@@ -1,9 +1,28 @@
-# NOTE: THIS IS A STUDENT PROJECT: USE AT YOUR OWN RISK
 # SafeNet: Your Network's Security Blanket
-    SafeNet is an app that analyzes network traffic on your own network.
-    It gives real-time insights and analysis, allowing for fast detection of threats.
-## What features are in place:
-    1.Live packet capture and storage to database.
-    2.CLI implemented to parameterize packet capturing function
-## What features I am currently working on
-    1. Analytics and insight
+
+> ⚠️ **Disclaimer**: This is a student project and is not intended for production use. Use at your own discretion.
+
+SafeNet is a lightweight tool for analyzing network traffic in real time. It captures packets, stores them in an in-memory database, and provides basic analytics to help identify suspicious activity.
+
+---
+
+## 🚀 Features
+
+- Live packet capture and in-memory storage
+- CLI for customizing capture behavior
+- Basic analytics: top IPs, statistical outliers
+- *(Planned)* API functionality
+
+---
+
+## 🛠 Usage
+
+### Command-Line Arguments
+
+- `-MaxBytes`: Maximum packet size to store (default: 1650 bytes)
+- `-timeout`: Timeout in seconds before stopping capture if no packets are received
+- *(Planned)* `-interface`: Specify the network interface to sniff on
+
+**Example:**
+```bash
+go run ./internal/cmd/SafeNet/main.go -timeout=30 -MaxBytes=1600
