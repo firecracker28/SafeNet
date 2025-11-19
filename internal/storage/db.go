@@ -27,13 +27,22 @@ func addTables(db *sql.DB) error {
 	dest_IP TEXT
 	)`
 
+	queryAlerts := `
+	CREATE TABLE IF NOT EXISTS alerts(
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	ip TEXT
+	)`
 	//TODO: add table for alerts
 	fmt.Println("Adding table to database....")
 	_, err := db.Exec(queryPackets)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to add packets table %w", err)
 	}
-	fmt.Println("Successfully added table to database...")
+	fmt.Println("Successfully added packets table to database...")
+	_, err = db.Exec(queryAlerts)
+	if err != nil {
+		return fmt.Errorf("failed to add alerts table %w", err)
+	}
 	return nil
 
 }

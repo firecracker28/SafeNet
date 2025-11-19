@@ -129,6 +129,11 @@ func SuspiciousIPs(db *sql.DB) {
 	GROUP BY dest_IP
 	ORDER BY frequency DESC`
 
+	alertQuery, err := db.Prepare("INSERT INTO alerts ( ip) VALUES (?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer alertQuery.Close()
 	rows, err := db.Query(querySrc)
 	if err != nil {
 		log.Fatal("database query for Source IP part of mean failed", err)
@@ -143,6 +148,10 @@ func SuspiciousIPs(db *sql.DB) {
 		}
 		if count > std {
 			suspiciousIPs = append(suspiciousIPs, src_IP)
+			_, err = alertQuery.Exec()
+			if err != nil {
+				log.Fatal("error adding alert to database")
+			}
 			fmt.Print("Suspicous IP: ", src_IP)
 		}
 
