@@ -63,6 +63,10 @@ func Top_Dest_IPs(db *sql.DB) {
 	}
 }
 
+/*
+Calculates mean of IP counts for both source and destination IP's
+Args: SQLite database
+*/
 func mean(db *sql.DB) int {
 	querySrc := `SELECT src_IP, COUNT(*) as frequency
 	FROM packets
@@ -115,6 +119,11 @@ func mean(db *sql.DB) int {
 	return sum / uniqueIPs
 }
 
+/*
+If an IP address has sent or recieved a packet it is
+marked as suspicious and outputted to the screen
+Args: SQLite database
+*/
 func SuspiciousIPs(db *sql.DB) {
 	var suspiciousIPs []string
 	std := mean(db) * 3

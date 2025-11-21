@@ -10,7 +10,7 @@ SafeNet is a lightweight tool for analyzing network traffic in real time. It cap
 
 - Live packet capture and in-memory storage
 - CLI for customizing capture behavior
-- Basic analytics: top IPs, statistical outliers
+- Basic analytics: top IPs, Suspicious IP's
 - *(Planned)* API functionality
 
 ---

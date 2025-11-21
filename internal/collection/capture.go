@@ -15,7 +15,7 @@ import (
 )
 
 /*
-Starts live packet capture from predetermined port for a predetermined time.
+Starts live packet capture from predetermined device interface until users presses CRTL + C.
 */
 func CapturePackets(device string, maximumBytes int, timeoutLength int, db *sql.DB) {
 	netinterface := device

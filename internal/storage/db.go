@@ -12,7 +12,7 @@ import (
 
 /*
 adds packet and alert table to database
-Arguments: db -> SQL database
+Args: SQLite database
 */
 func addTables(db *sql.DB) error {
 	queryPackets := `
