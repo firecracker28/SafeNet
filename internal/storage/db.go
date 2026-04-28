@@ -24,7 +24,9 @@ func addTables(db *sql.DB) error {
 	src_Port TEXT,
 	dest_Port TEXT,
 	src_IP TEXT,
-	dest_IP TEXT
+	dest_IP TEXT,
+	SYN BIT,
+	RST BIT
 	)`
 	//TODO: add table for alerts
 	fmt.Println("Adding table to database....")
@@ -67,7 +69,7 @@ func AddPackets(db *sql.DB, packets []gopacket.Packet) error {
 	if err != nil {
 		return fmt.Errorf("beginning error: %w", err)
 	}
-	addQuery, err := tx.Prepare("INSERT INTO packets (timestamp,length,protocols,src_Port,dest_Port,src_IP,dest_IP)VALUES (?, ?, ?, ?, ?, ?, ?) ")
+	addQuery, err := tx.Prepare("INSERT INTO packets (timestamp,length,protocols,src_Port,dest_Port,src_IP,dest_IP,SYN,RST) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ")
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("preparing error: %w", err)
@@ -77,7 +79,7 @@ func AddPackets(db *sql.DB, packets []gopacket.Packet) error {
 	for _, temp := range packets {
 		fmt.Println("Adding packets to database....")
 		packet := decoding.ParsePacket(temp)
-		_, err = addQuery.Exec(packet.Timestamp, packet.Length, packet.Protocols, packet.SrcPort, packet.DestPort, packet.SrcIP, packet.DestIP)
+		_, err = addQuery.Exec(packet.Timestamp, packet.Length, packet.Protocols, packet.SrcPort, packet.DestPort, packet.SrcIP, packet.DestIP, packet.SYN, packet.RST)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("adding error: %w", err)

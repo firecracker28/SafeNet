@@ -175,3 +175,37 @@ func SuspiciousIPs(db *sql.DB) {
 		}
 	}
 }
+
+func DetectPortScan(db *sql.DB, target_ip string) {
+
+	query := `SELECT dest_Port, dest_IP
+	FROM packets`
+	flagQuery := `SELECT COUNT(SYN),COUNT(RST)
+	FROM packets`
+	var uniquePorts []int
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Fatal("Failed to query destination ports. Error: ", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var port int
+		var ip string
+		rows.Scan(&port, &ip)
+		if ip == target_ip {
+			if !slices.Contains(uniquePorts, port) {
+				uniquePorts = append(uniquePorts, port)
+			}
+		}
+	}
+	flagCounts, err := db.Query(flagQuery)
+	if err != nil {
+		log.Fatal("Unable to pull flags from database. Error: ", err)
+	}
+	defer flagCounts.Close()
+	var synCount int
+	var rstCount int
+	flagCounts.Scan(&synCount, &rstCount)
+	fmt.Print("SYN Count: ", synCount)
+	fmt.Print("RST Count: ", rstCount)
+}

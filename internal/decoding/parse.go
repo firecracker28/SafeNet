@@ -1,8 +1,6 @@
 package decoding
 
 import (
-	"fmt"
-
 	"github.com/firecracker28/SafeNet/internal/objects"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -18,13 +16,14 @@ func ParsePacket(packet gopacket.Packet) objects.Packet {
 	protocols := ""
 	var srcPort, destPort string
 	var srcIP, destIP string
+	var flags [2]bool
 	if packet.Metadata() == nil {
-		return objects.MakePacket("", 0, "", "", "", "", "")
+		return objects.MakePacket("", 0, "", "", "", "", "", flags)
 	}
 	timestamp := packet.Metadata().Timestamp.String()
-	fmt.Printf("TimeStamp: %v", timestamp)
+	//fmt.Printf("TimeStamp: %v", timestamp)
 	packetLength := packet.Metadata().CaptureLength
-	fmt.Printf("Length: %v", packetLength)
+	//fmt.Printf("Length: %v", packetLength)
 	applicationLayer := packet.ApplicationLayer()
 	if applicationLayer != nil {
 		applicationProtocol := applicationLayer.LayerType().String()
@@ -33,12 +32,14 @@ func ParsePacket(packet gopacket.Packet) objects.Packet {
 	tcpLayer := packet.Layer(layers.LayerTypeTCP)
 	udpLayer := packet.Layer(layers.LayerTypeUDP)
 	if tcpLayer != nil {
-		protocols += "TCP "
+		protocols += "TCP"
 		tcp, _ := tcpLayer.(*layers.TCP)
 		srcPort = tcp.SrcPort.String()
 		destPort = tcp.DstPort.String()
+		flags[0] = tcp.SYN
+		flags[1] = tcp.RST
 	} else if udpLayer != nil {
-		protocols += "UDP "
+		protocols += "UDP"
 		udp, _ := udpLayer.(*layers.UDP)
 		srcPort = udp.SrcPort.String()
 		destPort = udp.DstPort.String()
@@ -54,6 +55,6 @@ func ParsePacket(packet gopacket.Packet) objects.Packet {
 		srcIP = ip.SrcIP.String()
 		destIP = ip.DstIP.String()
 	}
-	p := objects.MakePacket(timestamp, packetLength, protocols, srcPort, destPort, srcIP, destIP)
+	p := objects.MakePacket(timestamp, packetLength, protocols, srcPort, destPort, srcIP, destIP, flags)
 	return p
 }
