@@ -57,8 +57,8 @@ func CapturePacketsLive(device string, maximumBytes int, timeoutLength int, db *
 func CapturePcap(filepath string, db *sql.DB) {
 	handle, err := pcap.OpenOffline(filepath)
 	if err != nil {
-		log.Fatal("Unable to open pcap file")
-		panic(err)
+		log.Fatal("Unable to open pcap file", err)
+		//panic(err)
 	}
 	fmt.Println("Pcap file found....")
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())

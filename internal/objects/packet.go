@@ -17,7 +17,6 @@ Constructor for Packet object. Takes in all fields collected in ParsePackets()
 Returns a Packet object for entry into database
 */
 func MakePacket(timestamp string, length int, protocols string, srcPort string, destPort string, srcIP string, destIP string, flags [2]bool) Packet {
-
 	return Packet{
 		Timestamp: timestamp,
 		Length:    length,

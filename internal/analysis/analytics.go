@@ -32,7 +32,7 @@ func Top_Source_IPs(db *sql.DB) {
 		if err != nil {
 			fmt.Print("failed to scan source IP addresses")
 		}
-		fmt.Println("\n Source IP address: ", ip, " count: ", count)
+		fmt.Println("Source IP address: ", ip, " count: ", count)
 	}
 }
 
@@ -59,7 +59,7 @@ func Top_Dest_IPs(db *sql.DB) {
 		if err != nil {
 			fmt.Print("failed to scan destination IP addresses")
 		}
-		fmt.Println("\n Destination IP address: ", ip, " count: ", count)
+		fmt.Println("Destination IP address: ", ip, " count: ", count)
 	}
 }
 
@@ -170,7 +170,7 @@ func SuspiciousIPs(db *sql.DB) {
 		if count > std {
 			if !slices.Contains(suspiciousIPs, dest_IP) {
 				suspiciousIPs = append(suspiciousIPs, dest_IP)
-				fmt.Print("Suspicous IP: ", dest_IP)
+				fmt.Println("Suspicous IP: ", dest_IP)
 			}
 		}
 	}
@@ -180,16 +180,18 @@ func DetectPortScan(db *sql.DB, target_ip string) {
 
 	query := `SELECT dest_Port, dest_IP
 	FROM packets`
-	flagQuery := `SELECT COUNT(SYN),COUNT(RST)
+	flagQuery := `SELECT SYN,RST,dest_IP
 	FROM packets`
-	var uniquePorts []int
+	var uniquePorts []string
+	var synCount int
+	var rstCount int
 	rows, err := db.Query(query)
 	if err != nil {
 		log.Fatal("Failed to query destination ports. Error: ", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var port int
+		var port string
 		var ip string
 		rows.Scan(&port, &ip)
 		if ip == target_ip {
@@ -203,9 +205,22 @@ func DetectPortScan(db *sql.DB, target_ip string) {
 		log.Fatal("Unable to pull flags from database. Error: ", err)
 	}
 	defer flagCounts.Close()
-	var synCount int
-	var rstCount int
-	flagCounts.Scan(&synCount, &rstCount)
-	fmt.Print("SYN Count: ", synCount)
-	fmt.Print("RST Count: ", rstCount)
+	var syn int
+	var rst int
+	var dest_IP string
+	for flagCounts.Next() {
+		flagCounts.Scan(&syn, &rst, &dest_IP)
+		if dest_IP == target_ip {
+			if syn == 1 {
+				synCount += 1
+			}
+			if rst == 1 {
+				rstCount += 1
+			}
+		}
+
+	}
+	fmt.Println("Unique Ports:", len(uniquePorts))
+	fmt.Println("SYN Count:", synCount)
+	fmt.Println("RST Count:", rstCount)
 }
