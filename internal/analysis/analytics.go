@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"regexp"
 	"slices"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -28,9 +29,17 @@ func Top_Source_IPs(db *sql.DB) {
 	for rows.Next() {
 		var ip string
 		var count int
+		expression := "([0-9]{1,3}\\.){3}[0-9]{1,3}"
 		err := rows.Scan(&ip, &count)
 		if err != nil {
 			fmt.Print("failed to scan source IP addresses")
+		}
+		valid, err := regexp.MatchString(expression, ip)
+		if err != nil {
+			log.Fatal("regex expression failed. Error: ", err)
+		}
+		if valid == false {
+			continue
 		}
 		fmt.Println("Source IP address: ", ip, " count: ", count)
 	}
@@ -55,9 +64,18 @@ func Top_Dest_IPs(db *sql.DB) {
 	for rows.Next() {
 		var ip string
 		var count int
+		expression := "([0-9]{1,3}\\.){3}[0-9]{1,3}"
 		err := rows.Scan(&ip, &count)
 		if err != nil {
-			fmt.Print("failed to scan destination IP addresses")
+			log.Fatal("failed to scan destination IP addresses. Err: ", err)
+		}
+		//Added to fix blank ip address error
+		valid, err := regexp.MatchString(expression, ip)
+		if err != nil {
+			log.Fatal("regex expression failed. Error: ", err)
+		}
+		if valid == false {
+			continue
 		}
 		fmt.Println("Destination IP address: ", ip, " count: ", count)
 	}
