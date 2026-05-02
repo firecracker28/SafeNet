@@ -54,6 +54,13 @@ func CapturePacketsLive(device string, maximumBytes int, timeoutLength int, db *
 	storage.AddPackets(db, packets)
 }
 
+/*
+	Captures packet from a given pcap file
+
+Args:
+Filepath: Full file path given in file management software
+db: database to store packets
+*/
 func CapturePcap(filepath string, db *sql.DB) {
 	handle, err := pcap.OpenOffline(filepath)
 	if err != nil {

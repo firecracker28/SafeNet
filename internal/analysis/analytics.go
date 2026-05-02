@@ -176,6 +176,17 @@ func SuspiciousIPs(db *sql.DB) {
 	}
 }
 
+/*
+Searches packet trace for signs of Port Scanning
+
+	Signs checked for:
+	Amount of SYN packets recieved
+	Amount of RST packets recieved
+	Unique destination ports accessed at given IP address
+	Args:
+	db: database to query packets
+	target_ip: suspected target ip of port scan
+*/
 func DetectPortScan(db *sql.DB, target_ip string) {
 
 	query := `SELECT dest_Port, dest_IP

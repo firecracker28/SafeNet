@@ -8,8 +8,9 @@ SafeNet is a lightweight tool for analyzing network traffic in real time. It cap
 
 ## 🚀 Features
 
-- Live packet capture and in-memory storage
+- Supports live packet capture and pcap files
 - CLI for customizing capture behavior
+- captured packets are stored in SQLite database
 - Basic analytics: top IPs, Suspicious IP's
 - *(Planned)* API functionality
 
