@@ -10,6 +10,15 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+func validIP(ip string) bool {
+	expression := "([0-9]{1,3}\\.){3}[0-9]{1,3}"
+	valid, err := regexp.MatchString(expression, ip)
+	if err != nil {
+		log.Fatal("regex expression failed. Error: ", err)
+	}
+	return valid
+}
+
 /*
 Selects Top 5 source IP's and displays their frequency
 Arguments: SQLite3 datbase
@@ -29,16 +38,11 @@ func Top_Source_IPs(db *sql.DB) {
 	for rows.Next() {
 		var ip string
 		var count int
-		expression := "([0-9]{1,3}\\.){3}[0-9]{1,3}"
 		err := rows.Scan(&ip, &count)
 		if err != nil {
 			fmt.Print("failed to scan source IP addresses")
 		}
-		valid, err := regexp.MatchString(expression, ip)
-		if err != nil {
-			log.Fatal("regex expression failed. Error: ", err)
-		}
-		if valid == false {
+		if !validIP(ip) {
 			continue
 		}
 		fmt.Println("Source IP address: ", ip, " count: ", count)
@@ -64,17 +68,12 @@ func Top_Dest_IPs(db *sql.DB) {
 	for rows.Next() {
 		var ip string
 		var count int
-		expression := "([0-9]{1,3}\\.){3}[0-9]{1,3}"
 		err := rows.Scan(&ip, &count)
 		if err != nil {
 			log.Fatal("failed to scan destination IP addresses. Err: ", err)
 		}
 		//Added to fix blank ip address error
-		valid, err := regexp.MatchString(expression, ip)
-		if err != nil {
-			log.Fatal("regex expression failed. Error: ", err)
-		}
-		if valid == false {
+		if !validIP(ip) {
 			continue
 		}
 		fmt.Println("Destination IP address: ", ip, " count: ", count)
@@ -111,6 +110,9 @@ func mean(db *sql.DB) int {
 		if err != nil {
 			log.Fatal("counting for mean of source IP's failed", err)
 		}
+		if !validIP(src_IP) {
+			continue
+		}
 		IPs = append(IPs, src_IP)
 		sum += count
 		uniqueIPs++
@@ -127,6 +129,9 @@ func mean(db *sql.DB) int {
 		err := rows1.Scan(&dest_IP, &count)
 		if err != nil {
 			log.Fatal("counting for mean of dest IP's failed", err)
+		}
+		if !validIP(dest_IP) {
+			continue
 		}
 		if slices.Contains(IPs, dest_IP) {
 			IPs = append(IPs, dest_IP)
@@ -167,9 +172,12 @@ func SuspiciousIPs(db *sql.DB) {
 		if err != nil {
 			log.Fatal("counting for mean of source IP's failed", err)
 		}
+		if !validIP(src_IP) {
+			continue
+		}
 		if count > std {
 			suspiciousIPs = append(suspiciousIPs, src_IP)
-			fmt.Print("Suspicous IP: ", src_IP)
+			fmt.Println("Suspicous IP: ", src_IP)
 		}
 
 	}
@@ -184,6 +192,9 @@ func SuspiciousIPs(db *sql.DB) {
 		err := rows1.Scan(&dest_IP, &count)
 		if err != nil {
 			log.Fatal("counting for mean of dest IP's failed", err)
+		}
+		if !validIP(dest_IP) {
+			continue
 		}
 		if count > std {
 			if !slices.Contains(suspiciousIPs, dest_IP) {
