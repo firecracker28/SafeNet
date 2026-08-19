@@ -10,7 +10,7 @@ import (
 )
 
 /*
-Searches packet trace for signs of Port Scanning.
+Searches packet trace for signs of Port Scanning. Assumes BFF filter is set to TCP
 Indicators checked: Amount of SYN packets recieved,
 Amount of RST packets recieved, Unique destination ports accessed at target IP address.
 
@@ -18,7 +18,7 @@ Amount of RST packets recieved, Unique destination ports accessed at target IP a
 		db: database to query packets
 		target_ip: suspected target ip of port scan
 */
-func DetectPortScan(db *sql.DB, target_ip string) {
+func DetectTCPPortScan(db *sql.DB, target_ip string) {
 
 	query := `SELECT dest_Port, dest_IP
 	FROM packets`
@@ -62,19 +62,39 @@ func DetectPortScan(db *sql.DB, target_ip string) {
 		}
 
 	}
-	fmt.Println("Unique Ports:", len(uniquePorts))
+	fmt.Println("Unique TCP Ports Scanned:", len(uniquePorts))
 	fmt.Println("SYN Count:", synCount)
 	fmt.Println("RST Count:", rstCount)
 }
 
-func DetectLinuxSackPanic(db *sql.DB, target_ip string) {
+func DetectLinuxSACKPanic(db *sql.DB, target_ip string) {
 
 }
 
-func DetectUDPFlood(db *sql.DB, target_ip string) {
+func DetectUDPFlood(db *sql.DB, target_ip string, baseline_throughput float64) {
 
 }
 
 func DetectUDPScan(db *sql.DB, target_ip string) {
+	query := `SELECT dest_Port, dest_IP
+	FROM packets`
 
+	var uniquePorts []string
+
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Fatal("Failed to query destination ports. Error: ", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var port string
+		var ip string
+		rows.Scan(&port, &ip)
+		if ip == target_ip {
+			if !slices.Contains(uniquePorts, port) {
+				uniquePorts = append(uniquePorts, port)
+			}
+		}
+	}
+	fmt.Println("Unique UDP Ports Scanned:", len(uniquePorts))
 }

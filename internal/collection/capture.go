@@ -38,11 +38,11 @@ func CapturePacketsLive(device string, maximumBytes int, timeoutLength int, db *
 		log.Printf("Error setting filter %v", otherErr)
 		panic(otherErr)
 	}
-	stop := make(chan os.Signal, 1)
+	stop_packet_capture := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	// Go routine that stops packet capture when user presses ctrl + c
 	go func() {
-		<-stop
+		<-stop_packet_capture
 		fmt.Println("Interrupt received, stopping capture...")
 		handle.Close() // This will cause packetSource.Packets() to close
 	}()
