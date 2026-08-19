@@ -21,8 +21,5 @@ func main() {
 	defer db.Close()
 	collection.CapturePacketsLive(*device, *maxBytes, *timeout, db, *filter)
 	//collection.CapturePcap("C:\\Users\\logan\\OneDrive\\Documents\\SafeNet\\test_pcaps\\portscan.pcap", db)
-	analysis.Top_Source_IPs(db)
-	analysis.Top_Dest_IPs(db)
-	analysis.SuspiciousIPs(db)
-	analysis.DetectPortScan(db, "10.100.18.12")
+	analysis.Throughput(db)
 }

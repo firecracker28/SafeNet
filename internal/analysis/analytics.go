@@ -6,10 +6,16 @@ import (
 	"log"
 	"regexp"
 	"slices"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
+/*
+Helper function for IP verification via regex
+
+	Args: IP address to verify
+*/
 func validIP(ip string) bool {
 	expression := "([0-9]{1,3}\\.){3}[0-9]{1,3}"
 	valid, err := regexp.MatchString(expression, ip)
@@ -17,6 +23,36 @@ func validIP(ip string) bool {
 		log.Fatal("regex expression failed. Error: ", err)
 	}
 	return valid
+}
+
+func Throughput(db *sql.DB) {
+	query := `SELECT MIN(timestamp), MAX(timestamp), MAX(id)
+	from packets`
+	timestamps := db.QueryRow(query)
+	log.Println("Timestamps retrieved successfully")
+	var first_packet string
+	var last_packet string
+	var num_packets int
+	timestamps.Scan(&first_packet, &last_packet, &num_packets)
+
+	layout := "2006-01-02 15:04:05.999999999 -0700 MST"
+
+	start_capture_time, err := time.Parse(layout, first_packet)
+	if err != nil {
+		fmt.Println("Failed to convert first packet timestamp")
+	}
+	end_capture_time, err := time.Parse(layout, last_packet)
+	if err != nil {
+		fmt.Println("Failed to convert last packet timestamp")
+	}
+	duration := end_capture_time.Sub(start_capture_time)
+	seconds := float64(duration.Seconds())
+	num_packets_rounded := float64(num_packets)
+
+	final := num_packets_rounded / seconds
+
+	fmt.Println("Throughput (packets per second): ", final)
+
 }
 
 /*
@@ -132,8 +168,7 @@ func mean(db *sql.DB) int {
 		}
 		if !validIP(dest_IP) {
 			continue
-		}
-		if slices.Contains(IPs, dest_IP) {
+		} else if slices.Contains(IPs, dest_IP) {
 			IPs = append(IPs, dest_IP)
 			uniqueIPs++
 		}
@@ -216,51 +251,3 @@ Searches packet trace for signs of Port Scanning
 	db: database to query packets
 	target_ip: suspected target ip of port scan
 */
-func DetectPortScan(db *sql.DB, target_ip string) {
-
-	query := `SELECT dest_Port, dest_IP
-	FROM packets`
-	flagQuery := `SELECT SYN,RST,dest_IP
-	FROM packets`
-	var uniquePorts []string
-	var synCount int
-	var rstCount int
-	rows, err := db.Query(query)
-	if err != nil {
-		log.Fatal("Failed to query destination ports. Error: ", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var port string
-		var ip string
-		rows.Scan(&port, &ip)
-		if ip == target_ip {
-			if !slices.Contains(uniquePorts, port) {
-				uniquePorts = append(uniquePorts, port)
-			}
-		}
-	}
-	flagCounts, err := db.Query(flagQuery)
-	if err != nil {
-		log.Fatal("Unable to pull flags from database. Error: ", err)
-	}
-	defer flagCounts.Close()
-	var syn int
-	var rst int
-	var dest_IP string
-	for flagCounts.Next() {
-		flagCounts.Scan(&syn, &rst, &dest_IP)
-		if dest_IP == target_ip {
-			if syn == 1 {
-				synCount += 1
-			}
-			if rst == 1 {
-				rstCount += 1
-			}
-		}
-
-	}
-	fmt.Println("Unique Ports:", len(uniquePorts))
-	fmt.Println("SYN Count:", synCount)
-	fmt.Println("RST Count:", rstCount)
-}
